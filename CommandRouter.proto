@@ -1,0 +1,205 @@
+syntax = "proto3";
+
+package CommandProtocol;
+option csharp_namespace = "CommandProtocol";
+option java_package = "CommandProtocol";
+option java_outer_classname = "CommandProtocolProto";
+option go_package = "./CommandProtocol";
+option objc_class_prefix = "CMD";
+option php_namespace = "CommandProtocol";
+option ruby_package = "CommandProtocol";
+
+service CommandService {
+    rpc SendCommandMessage(CommandMessage) returns (CommandMessage);
+    rpc SendCommandMessageToStream(CommandMessage) returns (stream CommandMessage);
+    rpc SendStreamToCommandMessage(stream CommandMessage) returns (CommandMessage);
+    rpc SendStreamToStream(stream CommandMessage) returns (stream CommandMessage);
+    
+    rpc SendEmpty(Empty) returns (Empty);
+    rpc SendEmptyToStream(Empty) returns (stream Empty);
+    rpc SendEmptyStreamToStream(stream Empty) returns (stream Empty);
+    rpc SendEmptyStreamToEmpty(stream Empty) returns (Empty);
+    
+    rpc SendEmptyToCommandMessage(Empty) returns (CommandMessage);
+    rpc SendCommandMessageToEmpty(CommandMessage) returns (Empty);
+    rpc SendEmptyToCommandStream(Empty) returns (stream CommandMessage);
+    rpc SendCommandMessageToEmptyStream(CommandMessage) returns (stream Empty);
+    
+    rpc SendEmptyStreamToCommandMessage(stream Empty) returns (CommandMessage);
+    rpc SendCommandStreamToEmpty(stream CommandMessage) returns (Empty);
+    rpc SendEmptyStreamToCommandStream(stream Empty) returns (stream CommandMessage);
+    rpc SendCommandStreamToEmptyStream(stream CommandMessage) returns (stream Empty);
+}
+
+service DataRouteService {
+  rpc RouteData(stream DataPacket) returns (stream DataPacket);
+  rpc SendData(stream DataPacket) returns (Empty);
+  rpc ReceiveData(Empty) returns (stream DataPacket);
+  rpc UnaryData(DataPacket) returns (DataPacket);
+  rpc StreamToVoid(stream DataPacket) returns (stream Empty);
+  rpc VoidToStream(stream Empty) returns (stream DataPacket);
+  rpc UnaryToStream(DataPacket) returns (stream DataPacket);
+  rpc StreamToUnary(stream DataPacket) returns (DataPacket);
+  rpc VoidExchange(stream Empty) returns (stream Empty);
+}
+
+message CommandMessage {
+    MessageType Type = 1;
+    oneof Command {
+        string StringCommand = 2;
+        bytes BytesCommand = 3;
+        int32 Int32Command = 4;
+        int64 Int64Command = 5;
+        uint32 Uint32Command = 6;
+        uint64 Uint64Command = 7;
+        sint32 Sint32Command = 8;
+        sint64 Sint64Command = 9;
+        fixed32 Fixed32Command = 10;
+        fixed64 Fixed64Command = 11;
+        sfixed32 Sfixed32Command = 12;
+        sfixed64 Sfixed64Command = 13;
+        float FloatCommand = 14;
+        double DoubleCommand = 15;
+        bool BoolCommand = 16;
+        NullValue NullCommand = 17;
+        Table TableCommand = 18;
+        Array ArrayCommand = 19;
+    }
+    repeated Parameter Params = 20;
+    int64 Timestamp = 21;
+    bytes MessageId = 22; // string MessageId
+
+    Array MessageArray = 23;
+    Table MessageTable = 24;
+    
+    // Data / ExtendedData / AdditionalData / StructuredData
+    bytes MetaData = 25;
+    bytes PayloadData = 26;
+    bytes AuxiliaryData = 27;
+    
+}
+
+message Table {
+    repeated TableEntry Entries = 1;
+}
+
+message TableEntry {
+    Value Key = 1;
+    Value Value = 2;
+}
+
+message Value {
+    oneof ValueType {
+        string StringValue = 1;
+        bytes BytesValue = 2;
+        int32 Int32Value = 3;
+        int64 Int64Value = 4;
+        uint32 Uint32Value = 5;
+        uint64 Uint64Value = 6;
+        sint32 Sint32Value = 7;
+        sint64 Sint64Value = 8;
+        fixed32 Fixed32Value = 9;
+        fixed64 Fixed64Value = 10;
+        sfixed32 Sfixed32Value = 11;
+        sfixed64 Sfixed64Value = 12;
+        float FloatValue = 13;
+        double DoubleValue = 14;
+        bool BoolValue = 15;
+        NullValue NullValue = 16;
+        Table TableValue = 17;
+        Array ArrayValue = 18;
+    }
+}
+
+message Array {
+    repeated Value Elements = 1;
+}
+
+message KeyValueBytes {
+  bytes Key = 1;
+  bytes Value = 2;
+}
+
+message Parameter {
+    oneof Value {
+        string StringParam = 1;
+        bytes BytesParam = 2;
+        int32 Int32Param = 3;
+        int64 Int64Param = 4;
+        uint32 Uint32Param = 5;
+        uint64 Uint64Param = 6;
+        sint32 Sint32Param = 7;
+        sint64 Sint64Param = 8;
+        fixed32 Fixed32Param = 9;
+        fixed64 Fixed64Param = 10;
+        sfixed32 Sfixed32Param = 11;
+        sfixed64 Sfixed64Param = 12;
+        float FloatParam = 13;
+        double DoubleParam = 14;
+        bool BoolParam = 15;
+        NullValue NullParam = 16;
+        Table TableParam = 17;
+        Array ArrayParam = 18;
+    }
+}
+
+message DataPacket {
+  fixed64 RouteHeader = 1;
+  RouteMetadata Metadata = 2;
+  bytes Payload = 3;
+}
+
+
+message RouteMetadata {
+  PacketType PacketType = 1;
+  bytes SourceAddress = 2;
+  bytes DestinationAddress = 3;
+  uint64 PayloadLength = 4;
+  bytes Checksum = 5;
+  int32 Counter = 6;
+  fixed64 Timestamp = 7;
+  map<int64, bytes> Options = 8;
+  repeated KeyValueBytes ExtendedOptions = 9;
+  bytes Parameters = 10;
+}
+
+message RouteControl {
+  CommandMessage Command = 1;
+  bytes Parameters = 2;
+}
+
+enum PacketType {
+  TRANSMISSION = 0;
+  MESSAGE = 1;
+  TEST = 2;
+  CONTROL = 3;
+  GENERAL = 4;
+}
+
+enum MessageType {
+    STRING = 0;
+    BYTES = 1;
+    INT32 = 2;
+    INT64 = 3;
+    UINT32 = 4;
+    UINT64 = 5;
+    SINT32 = 6;
+    SINT64 = 7;
+    FIXED32 = 8;
+    FIXED64 = 9;
+    SFIXED32 = 10;
+    SFIXED64 = 11;
+    FLOAT = 12;
+    DOUBLE = 13;
+    BOOL = 14;
+    NULL = 15;
+    TABLE = 16;
+    ARRAY = 17;
+}
+
+message NullValue {
+}
+
+message Empty {
+}
+
